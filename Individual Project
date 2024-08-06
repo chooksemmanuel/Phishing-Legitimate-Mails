@@ -1,0 +1,75 @@
+# Import necessary libraries
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.neural_network import MLPClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import GridSearchCV
+import nltk
+from nltk.tokenize import word_tokenize
+from transformers import BertTokenizer, BertModel
+
+
+
+# Define the dataset
+X = [
+    "You are receiving this email because...",
+    "You have received this email because...",
+    "Sehr geehrte(r) $21 131 your wonderful present",
+    "I really don’t want you to miss out on this...",
+    "Win a free iPhone! Click here to claim your prize.",
+    "Make $10,000 from home with our proven system.",
+    "Your account has been compromised. Click here to reset your password.",
+    "Get the best deals on luxury watches. Limited time offer!",
+    "Meeting reminder: Team meeting on Friday at 2 PM.",
+    "Your package has shipped. Track it here.",
+    "New blog post: '10 Tips for Productivity'",
+    "Your payment has been processed. Thank you for your order."
+]
+
+y = [0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0]
+
+# Split the dataset into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Initialize the vectorizer
+vectorizer = CountVectorizer()
+
+# Fit the vectorizer to the training data and transform both the training and testing data
+X_train_vectorized = vectorizer.fit_transform(X_train)
+X_test_vectorized = vectorizer.transform(X_test)
+
+# Define the models
+logistic_regression = LogisticRegression()
+mlp = MLPClassifier(hidden_layer_sizes=(50, 50))
+random_forest = RandomForestClassifier(n_estimators=100)
+
+# Train the models
+logistic_regression.fit(X_train_vectorized, y_train)
+mlp.fit(X_train_vectorized, y_train)
+random_forest.fit(X_train_vectorized, y_train)
+
+# Make predictions on the testing data
+y_pred_logistic = logistic_regression.predict(X_test_vectorized)
+y_pred_mlp = mlp.predict(X_test_vectorized)
+y_pred_random_forest = random_forest.predict(X_test_vectorized)
+
+# Evaluate the models
+accuracy_logistic = accuracy_score(y_test, y_pred_logistic)
+accuracy_mlp = accuracy_score(y_test, y_pred_mlp)
+accuracy_random_forest = accuracy_score(y_test, y_pred_random_forest)
+
+print("Logistic Regression Accuracy:", accuracy_logistic)
+print("MLP Accuracy:", accuracy_mlp)
+print("Random Forest Accuracy:", accuracy_random_forest)
+
+# Hyperparameter tuning for Logistic Regression
+param_grid = {'C': [0.1, 1, 10], 'max_iter': [500, 1000, 2000]}
+grid_search = GridSearchCV(LogisticRegression(), param_grid, cv=5)
+grid_search.fit(X_train_vectorized, y_train)
+print("Best parameters:", grid_search.best_params_)
+
+# BERT model (optional)
+# tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+# model = BertModel.from_pretrained('bert-base-uncased')
